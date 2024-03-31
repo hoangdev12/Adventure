@@ -1,0 +1,19 @@
+package main;
+
+import java.awt.Container;
+
+import javax.swing.JFrame;
+
+public class Gui extends JFrame{
+       public static int W_FRAME = 770; //weight
+       public static int H_FRAME = 710; //height
+       
+       public Gui() {
+    	   setTitle("Boom Game");
+    	   setSize(W_FRAME, H_FRAME);
+    	   setLocationRelativeTo(null);
+    	   setResizable(false);
+    	   setDefaultCloseOperation(EXIT_ON_CLOSE);
+    	   add(new Container());
+       }
+}
