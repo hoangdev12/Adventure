@@ -79,7 +79,7 @@ public class Player extends Entity{
 	        direction = "right";
 	        movePlayer();
 	    }
-	    
+	      
 	    // update sprite
 	    spriteCounter++;
 	    if (spriteCounter > 12) {
