@@ -19,6 +19,7 @@ public class Main {
        window.setLocationRelativeTo(null);//dat vi tri cua so la o giua man hinh
        window.setVisible(true);//khong hien thi cua so ngay lap tuc
        
+       gamePanel.setupGame();
        gamePanel.startGameThread();
        
 }

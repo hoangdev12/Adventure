@@ -9,6 +9,7 @@ import java.awt.font.GraphicAttribute;
 import javax.swing.JPanel;
 
 import entity.Player;
+import object.SuperObject;
 import tile.TileManager;
 
 public class GamePanel extends JPanel implements Runnable{
@@ -37,12 +38,9 @@ public class GamePanel extends JPanel implements Runnable{
 	KeyHandler keyH = new KeyHandler();
 	Thread gameThread;
 	public CollisionChecker cChecker = new CollisionChecker(this);
+	public AssetSetter aSetter = new AssetSetter(this);
 	public Player player = new Player(this,keyH);
-	
-//	//set player pos
-//	int playerX = 100;
-//	int playerY = 100;
-//	int playerSpeed = 4;
+	public SuperObject obj[] = new SuperObject[10];
 	
 	public GamePanel() {
 		
@@ -52,6 +50,10 @@ public class GamePanel extends JPanel implements Runnable{
 		this.addKeyListener(keyH);
 		this.setFocusable(true);
 		
+	}
+	
+	public void setupGame() {
+		aSetter.setObject();
 	}
 	
 	public void startGameThread() {
@@ -99,9 +101,17 @@ public class GamePanel extends JPanel implements Runnable{
 		super.paintComponent(g);
 		
 		Graphics2D g2 = (Graphics2D)g;
-		
+		// TILE
 		tileM.draw(g2);
 		
+		// OBJECT
+		for(int i = 0; i < obj.length; i++) {
+			if(obj[i] != null) {
+				obj[i].draw(g2, this);
+			}
+		}
+		
+		// PLAYER
 		player.draw(g2);
 		
 		
