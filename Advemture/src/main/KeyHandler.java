@@ -139,10 +139,18 @@ public class KeyHandler implements KeyListener{
 	  	    	enterPressed = true;
 	        }
 		}
+		
 		// PAUSE STATE
 		else if(gp.gameState == gp.pauseState) {
-			if(code == KeyEvent.VK_P) { 	   
-	  	    	gp.gameState = gp.pauseState;
+			if(code == KeyEvent.VK_P) {   
+				if(gp.gameState != gp.pauseState) {
+					
+		  	    	gp.gameState = gp.pauseState;
+				}
+				else if(gp.gameState == gp.pauseState) {
+					
+					gp.gameState = gp.playState;
+				}
 	        }
 		}
 		
