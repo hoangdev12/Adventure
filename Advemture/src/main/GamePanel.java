@@ -5,12 +5,14 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.font.GraphicAttribute;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import javax.swing.JPanel;
 
 import entity.Entity;
 import entity.Player;
-import object.SuperObject;
 import tile.TileManager;
 
 public class GamePanel extends JPanel implements Runnable{
@@ -49,8 +51,10 @@ public class GamePanel extends JPanel implements Runnable{
 	
 	//ENTITY AND OBJECT
 	public Player player = new Player(this,keyH);
-	public SuperObject obj[] = new SuperObject[10];
+	public Entity obj[] = new Entity[10];
 	public Entity npc[] = new Entity[10];
+	public Entity monster[] = new Entity[20];
+	ArrayList<Entity> entityList = new ArrayList<>();
 	
 	// GAMESTATE
 	public int gameState;
@@ -72,6 +76,7 @@ public class GamePanel extends JPanel implements Runnable{
 	public void setupGame() {
 		aSetter.setObject();
 		aSetter.setNPC();
+		aSetter.setMonster();
 		
 		gameState = titleState;
 	}
@@ -105,7 +110,7 @@ public class GamePanel extends JPanel implements Runnable{
 		    }
 		    
 		    if(timer > 1000000000) {
-		    	System.out.println("FPS:" + drawCount);
+//		    	System.out.println("FPS:" + drawCount);
 		    	drawCount = 0;
 		    	timer = 0;
 		    }
@@ -123,6 +128,13 @@ public class GamePanel extends JPanel implements Runnable{
 			for(int i = 0; i < npc.length; i ++) {
 				if(npc[i] != null) {
 					npc[i].update();
+				}
+			}
+			
+			// MONSTER
+			for(int i = 0; i < monster.length; i ++) {
+				if(monster[i] != null) {
+					monster[i].update();
 				}
 			}
 		}
@@ -153,22 +165,46 @@ public class GamePanel extends JPanel implements Runnable{
 			// TILE
 			tileM.draw(g2);
 			
-			// OBJECT
-			for(int i = 0; i < obj.length; i++) {
-				if(obj[i] != null) {
-					obj[i].draw(g2, this);
-				}
-			}
+			// ADD ENTITIES TO THE LIST
+			entityList.add(player);
 			
-			// NPC
 			for(int i = 0; i < npc.length; i++) {
 				if(npc[i] != null) {
-					npc[i].draw(g2);
+					entityList.add(npc[i]);
 				}
 			}
 			
-			// PLAYER
-			player.draw(g2);
+			for(int i = 0; i < obj.length; i++) {
+				if(obj[i] != null) {
+					entityList.add(obj[i]);
+				}
+			}
+			
+			for(int i = 0; i < monster.length; i++) {
+				if(monster[i] != null) {
+					entityList.add(monster[i]);
+				}
+			}
+			// SORT
+			Collections.sort(entityList, new Comparator<Entity>() {
+
+				@Override
+				public int compare(Entity e1, Entity e2) {
+					
+					int result = Integer.compare(e1.worldX, e2.worldY);
+					return 0;
+				}
+				
+			});
+			
+			// DRAW ENTITIES
+			for(int i = 0 ; i < entityList.size(); i++) {
+				entityList.get(i).draw(g2);
+			}
+			// EMPTY ENTITY LIST
+			for(int i = 0 ; i < entityList.size(); i++) {
+				entityList.remove(i);
+			}
 			
 			//UI
 			ui.draw(g2);
