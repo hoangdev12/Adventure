@@ -35,6 +35,9 @@ public class Player extends Entity{
 		solidArea.width = 32;
 		solidArea.height = 32;
 		
+		attackArea.width = 36;
+		attackArea.height = 36;
+		
 		setDefaultValues();
 		getPlayerImage();
 		getPlayerAttackImage();
@@ -49,7 +52,7 @@ public class Player extends Entity{
 //		worldX = gp.tileSize * 10;
 //		worldY = gp.tileSize * 13;
 		
-		speed = 4;
+		speed = 10;
 		direction = "down";
 		
 		// PLAYER STATUS
@@ -83,93 +86,149 @@ public class Player extends Entity{
 
 	public void update() {
 	    
-		if(attacking == true) {
-			attacking();
-		}
-		
-		if(keyH.upPressed == true || keyH.downPressed == true || 
-				keyH.leftPressed == true|| keyH.rightPressed == true ||
-				keyH.enterPressed == true) {
-			if (keyH.upPressed == true) {
-	        direction = "up";
-	        movePlayer();
-	    } else if (keyH.downPressed == true) {
-	        direction = "down";
-	        movePlayer();
-	    } else if (keyH.leftPressed == true) {
-	        direction = "left";
-	        movePlayer();
-	    } else if (keyH.rightPressed == true) {
-	        direction = "right";
-	        movePlayer();
+	    if(attacking == true) {
+	    	attacking();
 	    }
-		
-		}
+	    else if(keyH.upPressed == true || keyH.downPressed == true 
+	    		|| keyH.leftPressed == true || keyH.rightPressed == true || 
+	    		keyH.enterPressed == true) {
+	    	
+	       if (keyH.upPressed == true) {
+	        direction = "up";
+	      }   else if (keyH.downPressed == true) {
+	        direction = "down";
+	        
+	      } else if (keyH.leftPressed == true) {
+	        direction = "left";
+	        
+	     } else if (keyH.rightPressed == true) {
+	        direction = "right";
+	       
+	     }
+	       
+	       collisionOn = false;
+		   gp.cChecker.checkTile(this);
+		    
+		    //check object collision
+		    int objIndex = gp.cChecker.checkObject(this, true);
+		    pickUpObject(objIndex);
+		   
+		    // CHECK NPC COLLISION
+		    int npcIndex = gp.cChecker.checkEntity(this, gp.npc);
+		    interactNPC(npcIndex);
+		    
+		    // CHECK MONSTER COLLISION
+		    int monsterIndex = gp.cChecker.checkEntity(this, gp.monster);
+		    contactMonster(monsterIndex);
+		    
+		    // CHECK EVENT
+		     gp.eHandler.checkEvent();
+			
+		    // IF COLLISION IF FALSE, CAN MOVE
+		    if (collisionOn == false && keyH.enterPressed == false) {
+		        switch (direction) {
+		            case "up":
+		                worldY -= speed;
+		                break;
+		            case "down":
+		                worldY += speed;
+		                break;
+		            case "left":
+		                worldX -= speed;
+		                break;
+		            case "right":
+		                worldX += speed;
+		                break;
+		        }
+		    }
+		    
+		    gp.keyH.enterPressed = false;
+		    	    
+		    // update sprite
+		    spriteCounter++;
+		    if (spriteCounter > 12) {
+		        if (spriteNum == 1) {
+		            spriteNum = 2;
+		        } else if (spriteNum == 2) {
+		            spriteNum = 1;
+		        }
+		        spriteCounter = 0;
+		    }
+		    
+		    if(invincible == true) {
+		    	
+		    	invincibleCounter++;
+		    	
+		    	if(invincibleCounter > 60) {
+		    		invincible = false;
+		    		invincibleCounter = 0;
+		    	}
+		    }	
+	   }
 	}
 	
-	private void movePlayer() {
-	    
-	    collisionOn = false;
-	    gp.cChecker.checkTile(this);
-	    
-	    //check object collision
-	    int objIndex = gp.cChecker.checkObject(this, true);
-	    pickUpObject(objIndex);
-	   
-	    // CHECK NPC COLLISION
-	    int npcIndex = gp.cChecker.checkEntity(this, gp.npc);
-	    interactNPC(npcIndex);
-	    
-	    // CHECK MONSTER COLLISION
-	    int monsterIndex = gp.cChecker.checkEntity(this, gp.monster);
-	    contactMonster(monsterIndex);
-	    
-	    // CHECK EVENT
-	   
-
-		gp.keyH.enterPressed = false;
-		
-	    // IF COLLISION IF FALSE, CAN MOVE
-	    if (collisionOn == false && keyH.enterPressed == false) {
-	        switch (direction) {
-	            case "up":
-	                worldY -= speed;
-	                break;
-	            case "down":
-	                worldY += speed;
-	                break;
-	            case "left":
-	                worldX -= speed;
-	                break;
-	            case "right":
-	                worldX += speed;
-	                break;
-	        }
-	    }
-	    
-	    gp.eHandler.checkEvent();
-	    
-	    // update sprite
-	    spriteCounter++;
-	    if (spriteCounter > 12) {
-	        if (spriteNum == 1) {
-	            spriteNum = 2;
-	        } else if (spriteNum == 2) {
-	            spriteNum = 1;
-	        }
-	        spriteCounter = 0;
-	    }
-	    
-	    if(invincible == true) {
-	    	
-	    	invincibleCounter++;
-	    	
-	    	if(invincibleCounter > 60) {
-	    		invincible = false;
-	    		invincibleCounter = 0;
-	    	}
-	    }
-	}
+	
+//	private void movePlayer() {
+//	    
+//	    collisionOn = false;
+//	    gp.cChecker.checkTile(this);
+//	    
+//	    //check object collision
+//	    int objIndex = gp.cChecker.checkObject(this, true);
+//	    pickUpObject(objIndex);
+//	   
+//	    // CHECK NPC COLLISION
+//	    int npcIndex = gp.cChecker.checkEntity(this, gp.npc);
+//	    interactNPC(npcIndex);
+//	    
+//	    // CHECK MONSTER COLLISION
+//	    int monsterIndex = gp.cChecker.checkEntity(this, gp.monster);
+//	    contactMonster(monsterIndex);
+//	    
+//	    // CHECK EVENT
+//	     gp.eHandler.checkEvent();
+//		
+//	    // IF COLLISION IF FALSE, CAN MOVE
+//	    if (collisionOn == false && keyH.enterPressed == false) {
+//	        switch (direction) {
+//	            case "up":
+//	                worldY -= speed;
+//	                break;
+//	            case "down":
+//	                worldY += speed;
+//	                break;
+//	            case "left":
+//	                worldX -= speed;
+//	                break;
+//	            case "right":
+//	                worldX += speed;
+//	                break;
+//	        }
+//	    }
+//	    
+//	    gp.keyH.enterPressed = false;
+//	    	    
+//	    // update sprite
+//	    spriteCounter++;
+//	    if (spriteCounter > 12) {
+//	        if (spriteNum == 1) {
+//	            spriteNum = 2;
+//	        } else if (spriteNum == 2) {
+//	            spriteNum = 1;
+//	        }
+//	        spriteCounter = 0;
+//	    }
+//	    
+//	    if(invincible == true) {
+//	    	
+//	    	invincibleCounter++;
+//	    	
+//	    	if(invincibleCounter > 60) {
+//	    		invincible = false;
+//	    		invincibleCounter = 0;
+//	    	}
+//	    }
+//	}
 
 	public void attacking() {
 		
@@ -181,12 +240,45 @@ public class Player extends Entity{
 		}
 		if(spriteCounter > 5 && spriteCounter <=25) {
 			spriteNum =2;
+			
+			//save the current world
+			int currentWorldX = worldX;
+			int currentWorldY = worldY;
+			int solidAreaWidth = solidArea.width;
+			int solidAreaHeight = solidArea.height;
+			
+			//adjust player's worldX/Y for the attackArea
+		switch(direction) {
+		case "up": worldY -= attackArea.height; break;
+		case "down": worldY += attackArea.height; break;
+		case "left": worldX -= attackArea.width; break;
+		case "right": worldX += attackArea.width; break;
+		
+		}	
+		
+		//attackAreabecome solid Area
+		solidArea.width = attackArea.width;
+		solidArea.height = attackArea.height;
+		
+		//Check monster collision with the update worldX, worldY and solidArea
+		int monsterIndex = gp.cChecker.checkEntity(this, gp.monster);
+		damageMonster(monsterIndex);
+		
+		worldX = currentWorldX;
+		worldY = currentWorldY;
+		solidArea.width = solidAreaWidth;
+		solidArea.height = solidAreaHeight;
+		
 		}
+		
 		if(spriteCounter > 25) {
 			spriteNum = 1;
 			spriteCounter = 0;
 			attacking = false;
 		}
+		
+		
+		
 	}
 	
 	public void pickUpObject(int i) {
@@ -206,6 +298,7 @@ public class Player extends Entity{
 				gp.npc[i].speak();
 		}
 		else {
+			gp.playSE(7);
 				attacking = true;
 			}
 		}			
@@ -217,16 +310,36 @@ public class Player extends Entity{
 		if(i != 999) {
 			
 			if(invincible == false) {
+			    gp.playSE(6);
 				life -= 1;
 				invincible = true;
 			}
 		}
 	}
 	
+	public void damageMonster(int i) {
+		
+		if(i != 999) {
+			
+		if(gp.monster[i].invincible == false) {
+			
+			gp.playSE(5);
+			gp.monster[i].life -= 1;
+			gp.monster[i].invincible = true;
+			
+			if(gp.monster[i].life <= 0) {
+				gp.monster[i].dying = true;
+			}
+		}
+	}
+}
+	
 	public void draw(Graphics2D g2) {
         
 
 		BufferedImage image = null;
+		int tempScreenX = screenX;
+		int tempScreenY = screenY;
 		
 		switch(direction) {
 		case "up" :
@@ -235,6 +348,7 @@ public class Player extends Entity{
 			   if(spriteNum == 2) {image = up2;}
 			}
 			else {
+				tempScreenY = screenY - gp.tileSize;
 				if(spriteNum == 1) {image = attackUp1;}		
 				if(spriteNum == 2) {image = attackUp2;}
 			}
@@ -256,6 +370,7 @@ public class Player extends Entity{
 		    	 if(spriteNum == 2) {image = left2;}
 	    	}
 	    	else {
+	    		tempScreenX = screenX - gp.tileSize;
 	    		if(spriteNum == 1) {image = attackLeft1;}	
 	    	    if(spriteNum == 2) {image = attackLeft2;}
 	    	} 		    	
@@ -276,10 +391,10 @@ public class Player extends Entity{
 			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
 		}
 		
-		g2.drawImage(image,  screenX,  screenY, null);
+		g2.drawImage(image,  tempScreenX,  tempScreenY, null);
 		
 		// RESET ALPHA
-		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 		
 		// DEBUG
 //		g2.setFont(new Font("Arial", Font.PLAIN, 26));
