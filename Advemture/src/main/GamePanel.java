@@ -41,6 +41,7 @@ public class GamePanel extends JPanel implements Runnable{
 	TileManager tileM = new TileManager(this);
 	public KeyHandler keyH = new KeyHandler(this);
 	Sound music = new Sound();
+	
 	//SOUND EFFECT
 	Sound se = new Sound();
 	Thread gameThread;
@@ -62,6 +63,8 @@ public class GamePanel extends JPanel implements Runnable{
 	public final int playState = 1;
 	public final int pauseState = 2;
 	public final int dialogueState = 3; // Doi thoai giua PLAYER va NPC
+	public final int characterState = 4;
+	
 	
 	public GamePanel() {
 		
@@ -134,14 +137,16 @@ public class GamePanel extends JPanel implements Runnable{
 			// MONSTER
 			for(int i = 0; i < monster.length; i ++) {
 				if(monster[i] != null) {
-					if(monster[i].alive == true && monster[i].dying == false){
+					
+					if(monster[i].alive == true && monster[i].dying == false) {
 						monster[i].update();
 					}
-					if(monster[i].alive == false ){
+					
+					if(monster[i].alive == false) {
 						monster[i] = null;
-				}	
+					}
+				}
 			}
-		}
 			
 		if(gameState == pauseState) {
 			//nothing
