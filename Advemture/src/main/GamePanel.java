@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 import entity.Entity;
 import entity.Player;
 import tile.TileManager;
+import tiles_contact.ContactTile;
 
 public class GamePanel extends JPanel implements Runnable{
 	
@@ -52,9 +53,11 @@ public class GamePanel extends JPanel implements Runnable{
 	
 	//ENTITY AND OBJECT
 	public Player player = new Player(this,keyH);
-	public Entity obj[] = new Entity[10];
+	public Entity obj[] = new Entity[20];
 	public Entity npc[] = new Entity[10];
 	public Entity monster[] = new Entity[20];
+	public ContactTile cTile[] = new ContactTile[50];
+	public ArrayList<Entity> projectileList = new ArrayList<>();
 	ArrayList<Entity> entityList = new ArrayList<>();
 	
 	// GAMESTATE
@@ -80,6 +83,7 @@ public class GamePanel extends JPanel implements Runnable{
 		aSetter.setObject();
 		aSetter.setNPC();
 		aSetter.setMonster();
+		aSetter.setContactTile();
 		
 		gameState = titleState;
 	}
@@ -118,8 +122,8 @@ public class GamePanel extends JPanel implements Runnable{
 		    	timer = 0;
 		    }
 		}
-		
-		}
+	}
+	
 	public void update(){
 		
 		if(gameState == playState) {
@@ -136,15 +140,37 @@ public class GamePanel extends JPanel implements Runnable{
 			
 			// MONSTER
 			for(int i = 0; i < monster.length; i ++) {
+				
 				if(monster[i] != null) {
-					
 					if(monster[i].alive == true && monster[i].dying == false) {
 						monster[i].update();
 					}
 					
 					if(monster[i].alive == false) {
+						monster[i].checkDrop();
 						monster[i] = null;
 					}
+				}
+			}
+			
+			// PROJECTILE
+			for(int i = 0; i < projectileList.size(); i ++) {
+				if(projectileList.get(i) != null) {
+					
+					if(projectileList.get(i).alive == true) {
+						projectileList.get(i).update();
+					}
+					
+					if(projectileList.get(i).alive == false) {
+						projectileList.remove(i);
+					}
+				}
+			}
+			
+			for(int i = 0; i < cTile.length; i++) {
+				
+				if(cTile[i] != null) {
+					cTile[i].update();
 				}
 			}
 			
@@ -176,6 +202,13 @@ public class GamePanel extends JPanel implements Runnable{
 			// TILE
 			tileM.draw(g2);
 			
+			// CONTACT TILE
+			for(int i = 0; i < cTile.length; i++) {
+				if(cTile[i] != null) {
+					cTile[i].draw(g2);
+				}
+			}
+			
 			// ADD ENTITIES TO THE LIST
 			entityList.add(player);
 			
@@ -194,6 +227,12 @@ public class GamePanel extends JPanel implements Runnable{
 			for(int i = 0; i < monster.length; i++) {
 				if(monster[i] != null) {
 					entityList.add(monster[i]);
+				}
+			}
+			
+			for(int i = 0; i < projectileList.size(); i++) {
+				if(projectileList.get(i) != null) {
+					entityList.add(projectileList.get(i));
 				}
 			}
 			// SORT

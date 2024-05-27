@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import main.GamePanel;
 import main.KeyHandler;
+import object.OBJ_Fireball;
 import object.OBJ_Key;
 import object.OBJ_Shield_Wood;
 import object.OBJ_Sword_Normal;
@@ -66,6 +67,9 @@ public class Player extends Entity{
 		level = 1;
 		maxLife = 6;
 		life = maxLife;
+		maxMana = 4;
+		mana = maxMana;
+		ammo = 10;
 		strength = 1;
 		dexterity = 1;
 		exp = 0;
@@ -73,13 +77,14 @@ public class Player extends Entity{
 		coin = 0;
 		currentWeapon = new OBJ_Sword_Normal(gp);
 		currentShield = new OBJ_Shield_Wood(gp);
+		projectile = new OBJ_Fireball(gp);
+		//projectile = new OBJ_Rock(gp);
 		attack = getAttack();
 		defense = getDefense();
 		
 	}
 	
-	public void setItems() {
-		
+	public void setItems() {	
 		inventory.add(currentWeapon);
 		inventory.add(currentShield);
 		inventory.add(new OBJ_Key(gp));
@@ -143,23 +148,16 @@ public class Player extends Entity{
 	    		|| keyH.leftPressed == true || keyH.rightPressed == true || 
 	    		keyH.enterPressed == true) {
 	    	
-	       if (keyH.upPressed == true) {
-	        direction = "up";
-	      }   else if (keyH.downPressed == true) {
-	        direction = "down";
-	        
-	      } else if (keyH.leftPressed == true) {
-	        direction = "left";
-	        
-	     } else if (keyH.rightPressed == true) {
-	        direction = "right";
+	       if (keyH.upPressed == true) { direction = "up";}   
+	       else if (keyH.downPressed == true) { direction = "down";} 
+	       else if (keyH.leftPressed == true) { direction = "left";} 
+	       else if (keyH.rightPressed == true) { direction = "right";}
 	       
-	     }
-	       
+	       // CHECK TILE COLLISION
 	       collisionOn = false;
 		   gp.cChecker.checkTile(this);
 		    
-		    //check object collision
+		    // CHECK OBJECTS COLLISION
 		    int objIndex = gp.cChecker.checkObject(this, true);
 		    pickUpObject(objIndex);
 		   
@@ -170,6 +168,10 @@ public class Player extends Entity{
 		    // CHECK MONSTER COLLISION
 		    int monsterIndex = gp.cChecker.checkEntity(this, gp.monster);
 		    contactMonster(monsterIndex);
+		    
+		    // CHECK CONTACT TILE COLLISION
+		    int cTileIndex = gp.cChecker.checkEntity(this, gp.cTile);
+		    
 		    
 		    // CHECK EVENT
 		     gp.eHandler.checkEvent();
@@ -213,6 +215,23 @@ public class Player extends Entity{
 		        spriteCounter = 0;
 		    }
 		    
+		    if(gp.keyH.shotKeyPressed == true && projectile.alive == false 
+		    		&& shotAvailableCounter == 30 && projectile.haveResource(this)) {
+		    	// SET DEFAULT COORDINATES, DIRECTION AND USER
+		    	projectile.set(worldX, worldY, direction, true, this);
+		    	
+		    	// SUBTRACT THE COST (MANA, AMMO ECT.)
+		    	projectile.subtractResource(this);
+		    	
+		    	// ADD IT TO THE LIST
+		    	gp.projectileList.add(projectile);
+		    	
+		    	shotAvailableCounter = 0;
+		    	
+		    	gp.playSE(10);
+		    	
+		    }
+		    
 		    if(invincible == true) {
 		    	
 		    	invincibleCounter++;
@@ -222,7 +241,19 @@ public class Player extends Entity{
 		    		invincibleCounter = 0;
 		    	}
 		    }	
-	   }
+	    }
+	    
+	    if(shotAvailableCounter < 30) {
+	    	shotAvailableCounter++;
+	    }
+	    
+	    if(life > maxLife) {
+	    	life = maxLife;
+		}
+	    
+	    if(mana > maxMana) {
+	    	mana = maxMana;
+		}
 	}
 
 	public void attacking() {
@@ -257,8 +288,11 @@ public class Player extends Entity{
 		
 		//Check monster collision with the update worldX, worldY and solidArea
 		int monsterIndex = gp.cChecker.checkEntity(this, gp.monster);
-		damageMonster(monsterIndex);
+		damageMonster(monsterIndex, attack);
 		
+		int cTileIndex = gp.cChecker.checkEntity(this, gp.cTile);
+		damageContacTile(cTileIndex);
+		// after check the collision restore the original data
 		worldX = currentWorldX;
 		worldY = currentWorldY;
 		solidArea.width = solidAreaWidth;
@@ -280,19 +314,29 @@ public class Player extends Entity{
 		
 		if(i != 999) {
 			
-			String text;
-			
-			if(inventory.size() != maxInventorySize) {
+			// PICKUP ONLY ITEMS
+			if(gp.obj[i].type == type_pickupOnly) {
 				
-				inventory.add(gp.obj[i]);
-				gp.playSE(1);
-				text = "Got a " + gp.obj[i].name + "!";
+				gp.obj[i].use(this);
+				gp.obj[i] = null;
 			}
+			
+			// INVENTORY ITEMS
 			else {
-				text = "You cannot carry any more!";
+				String text;
+				
+				if(inventory.size() != maxInventorySize) {
+					
+					inventory.add(gp.obj[i]);
+					gp.playSE(1);
+					text = "Got a " + gp.obj[i].name + "!";
+				}
+				else {
+					text = "You cannot carry any more!";
+				}
+				gp.ui.addMessage(text);
+				gp.obj[i] = null;
 			}
-			gp.ui.addMessage(text);
-			gp.obj[i] = null;
 		}
 	}
 	
@@ -314,7 +358,7 @@ public class Player extends Entity{
 		
 		if(i != 999) {
 			
-			if(invincible == false) {
+			if(invincible == false && gp.monster[i].dying == false) {
 				
 			    gp.playSE(6);
 			    
@@ -328,7 +372,7 @@ public class Player extends Entity{
 		}
 	}
 	
-	public void damageMonster(int i) {
+	public void damageMonster(int i, int attack) {
 		
 		if(i != 999) {
 			
@@ -359,6 +403,19 @@ public class Player extends Entity{
 		}
 	}
 }
+	
+	public void damageContacTile(int i) {
+		if(i != 999 && gp.cTile[i].destructible == true && gp.cTile[i].isCorrectItem(this)
+				&& gp.cTile[i].invincible == false) {
+			gp.cTile[i].PlaySE();
+			gp.cTile[i].life--;
+			gp.cTile[i].invincible = true;
+			
+			if(gp.cTile[i].life == 0) {
+				gp.cTile[i] = gp.cTile[i].getDestroyedForm();
+			}
+		}
+	}
 	
 	public void checkLevelUp() {
 		

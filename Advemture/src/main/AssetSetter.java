@@ -3,9 +3,13 @@ package main;
 import entity.NPC_OldMan;
 import monster.Slime;
 import object.OBJ_Axe;
+import object.OBJ_Coin_Bronze;
+import object.OBJ_Heart;
 import object.OBJ_Key;
+import object.OBJ_ManaCrystal;
 import object.OBJ_Potion_Red;
 import object.OBJ_Shield_Blue;
+import tiles_contact.CT_DryTree;
 
 public class AssetSetter {
 
@@ -19,7 +23,7 @@ public class AssetSetter {
 		int i = 0;
 		
 		// KEY
-		gp.obj[i] = new OBJ_Key(gp);
+		gp.obj[i] = new OBJ_Coin_Bronze(gp);
 		gp.obj[i].worldX = gp.tileSize * 25;
 		gp.obj[i].worldY = gp.tileSize * 23;
 		i++;
@@ -49,6 +53,16 @@ public class AssetSetter {
 		gp.obj[i].worldX = gp.tileSize * 22;
 		gp.obj[i].worldY = gp.tileSize * 27;
 		i++;
+		
+		gp.obj[i] = new OBJ_Heart(gp);
+		gp.obj[i].worldX = gp.tileSize * 25;
+		gp.obj[i].worldY = gp.tileSize * 27;
+		i++;
+		
+		gp.obj[i] = new OBJ_ManaCrystal(gp);
+		gp.obj[i].worldX = gp.tileSize * 22;
+		gp.obj[i].worldY = gp.tileSize * 30;
+		i++;
 	}
 	
 	public void setNPC() {
@@ -68,5 +82,25 @@ public class AssetSetter {
 		gp.monster[1] = new Slime(gp);
 		gp.monster[1].worldX = gp.tileSize * 11;
 		gp.monster[1].worldY = gp.tileSize * 11;
+	}
+	
+	public void setContactTile() {
+		
+		int i = 0;
+		
+		gp.cTile[i] = new CT_DryTree(gp,27,12);i++;
+		
+		gp.cTile[i] = new CT_DryTree(gp,28,12);i++;
+		
+		gp.cTile[i] = new CT_DryTree(gp,29,12);i++;
+		
+		gp.cTile[i] = new CT_DryTree(gp,30,12);i++;
+		
+		gp.cTile[i] = new CT_DryTree(gp,31,12);i++;
+		
+		gp.cTile[i] = new CT_DryTree(gp,32,12);i++;
+		
+		gp.cTile[i] = new CT_DryTree(gp,33,12);i++;
+		
 	}
 }
