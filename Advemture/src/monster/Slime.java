@@ -57,18 +57,18 @@ public class Slime extends Entity {
 		
 		if(actionLockCounter == 120) {
 			Random random = new Random();
-			int i = random.nextInt(100) + 1; // pick up a number from 1 to 100
+			int i = random.nextInt(80) + 1; // pick up a number from 1 to 100
 		
-			if(i <= 25) {
+			if(i <= 20) {
 				direction = "up";
 			}
-			else if(i <= 50) {
+			else if(i <= 40) {
 				direction = "down";
 			}
-			else if(i <= 75) {
+			else if(i <= 60) {
 				direction = "left";
 			}
-			else if(i <= 100) {
+			else if(i <= 80) {
 				direction = "right";
 			}
 			
@@ -81,6 +81,7 @@ public class Slime extends Entity {
 			projectile.set(worldX, worldY, direction, true, this);
 			gp.projectileList.add(projectile);
 			shotAvailableCounter = 0;
+			projectile.speed = 5;
 		}
 	}
 	

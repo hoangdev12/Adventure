@@ -16,7 +16,7 @@ public class ContactTile extends Entity {
 	public boolean isCorrectItem(Entity entity) {
 		boolean isCorrectItem = false;
 		
-		if(entity.currentWeapon.type == type_axe) {
+		if(entity.currentWeapon.type == type_axe && gp.keyH.enterPressed == true) {
 			isCorrectItem = true;
 		}
 		return isCorrectItem;

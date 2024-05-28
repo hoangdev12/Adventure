@@ -1,5 +1,8 @@
 package tiles_contact;
 
+import java.awt.Color;
+
+import entity.Entity;
 import main.GamePanel;
 
 public class CT_DryTree extends ContactTile {
@@ -17,7 +20,7 @@ public class CT_DryTree extends ContactTile {
 		destructible = true;
 		life = 3;
 	}
-
+	
 	public void PlaySE() {
 		gp.playSE(11);
 	}
@@ -25,5 +28,25 @@ public class CT_DryTree extends ContactTile {
 	public ContactTile getDestroyedForm() {
 		ContactTile tile = new CT_Trunk(gp, worldX / gp.tileSize, worldY / gp.tileSize);
 		return tile;
+	}
+	
+	public Color getParticleColor() {
+		Color color = new Color(65,50,30);
+		return color;
+	}
+	
+	public int getParticleSize() {
+		int size = 6; // 6 pixels
+		return size;
+	}
+	
+	public int getParticleSpeed() {
+		speed = 1;
+		return speed;
+	}
+	
+	public int getParticleMaxLife() {
+		int maxLife = 20;
+		return maxLife;
 	}
 }

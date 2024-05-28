@@ -4,7 +4,10 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.font.GraphicAttribute;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -18,14 +21,14 @@ import tiles_contact.ContactTile;
 
 public class GamePanel extends JPanel implements Runnable{
 	
-      //setting screen
+      // setting screen
 	final int originalTileSize = 16; //16x16 tile
 	final int scale = 3;
 	
 	public final int tileSize = originalTileSize * scale;
-	public final int maxScreenCol = 16;
+	public final int maxScreenCol = 20;
 	public final int maxScreenRow = 12;
-	public final int screenWidth = tileSize * maxScreenCol; //768 px
+	public final int screenWidth = tileSize * maxScreenCol; //960 px
 	public final int screenHeight = tileSize * maxScreenRow; //576 px
 	
 	//WORLD SETTING	
@@ -34,6 +37,11 @@ public class GamePanel extends JPanel implements Runnable{
     public final int worldHeight = tileSize * maxWorldRow;
     public final int worldWidth = tileSize * maxWorldCol;
 	
+    // FULL SCREEN
+    int screenWidth2 = screenWidth;
+    int screenHeight2 = screenHeight;
+    BufferedImage tempScreen;
+    Graphics2D g2;
 	
 	//FPS
 	int FPS = 60;
@@ -58,6 +66,7 @@ public class GamePanel extends JPanel implements Runnable{
 	public Entity monster[] = new Entity[20];
 	public ContactTile cTile[] = new ContactTile[50];
 	public ArrayList<Entity> projectileList = new ArrayList<>();
+	public ArrayList<Entity> particleList = new ArrayList<>();
 	ArrayList<Entity> entityList = new ArrayList<>();
 	
 	// GAMESTATE
@@ -86,6 +95,24 @@ public class GamePanel extends JPanel implements Runnable{
 		aSetter.setContactTile();
 		
 		gameState = titleState;
+		
+		tempScreen = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_INT_ARGB);
+		g2 = (Graphics2D)tempScreen.getGraphics();
+		
+		setFullScreen();
+		
+	}
+	
+	public void setFullScreen() {
+		
+		// GET LOCAL SCREEN DEVICE
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice gd = ge.getDefaultScreenDevice();
+		gd.setFullScreenWindow(Main.window);
+		
+		// GET FULL SCREEN WIDTH AND HEIGHT
+		screenWidth2 = Main.window.getWidth();
+		screenHeight2 = Main.window.getHeight();
 	}
 	
 	public void startGameThread() {
@@ -111,7 +138,8 @@ public class GamePanel extends JPanel implements Runnable{
 		    
 		    if(delta >= 1) {
 		    	update();
-		    	repaint();
+		    	drawToTempScreen(); // draw everything to the buffered iamge
+		    	drawToScreen(); // draw  the buffered image to the screen
 		    	delta--;
 		    	drawCount++;
 		    }
@@ -167,6 +195,20 @@ public class GamePanel extends JPanel implements Runnable{
 				}
 			}
 			
+			// PARTICLE
+			for(int i = 0; i < particleList.size(); i ++) {
+				if(particleList.get(i) != null) {
+					
+					if(particleList.get(i).alive == true) {
+						particleList.get(i).update();
+					}
+					
+					if(particleList.get(i).alive == false) {
+						particleList.remove(i);
+					}
+				}
+			}
+			
 			for(int i = 0; i < cTile.length; i++) {
 				
 				if(cTile[i] != null) {
@@ -180,11 +222,7 @@ public class GamePanel extends JPanel implements Runnable{
 	}
 }
 	
-	public void paintComponent(Graphics g) {
-		
-		super.paintComponent(g);
-		
-		Graphics2D g2 = (Graphics2D)g;
+	public void drawToTempScreen() {
 		
 		// DEBUG
 		long drawStart = 0;
@@ -235,6 +273,12 @@ public class GamePanel extends JPanel implements Runnable{
 					entityList.add(projectileList.get(i));
 				}
 			}
+			
+			for(int i = 0; i < particleList.size(); i++) {
+				if(particleList.get(i) != null) {
+					entityList.add(particleList.get(i));
+				}
+			}
 			// SORT
 			Collections.sort(entityList, new Comparator<Entity>() {
 
@@ -270,8 +314,13 @@ public class GamePanel extends JPanel implements Runnable{
 			g2.drawString("Draw Time: " + passed , 10, 400);
 			System.out.println("Draw Time: " + passed);
 		}
+	}
 		
-		g2.dispose();
+	public void drawToScreen() {
+		
+		Graphics g = getGraphics();
+		g.drawImage(tempScreen, 0, 0, screenWidth2, screenHeight2, null);
+		g.dispose();
 	}
 	
 	public void playMusic(int i) {

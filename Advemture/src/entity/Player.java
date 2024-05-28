@@ -60,7 +60,7 @@ public class Player extends Entity{
 		worldX = gp.tileSize * 23;
     	worldY = gp.tileSize * 21;
 
-		speed = 10;
+		speed = 5;
 		direction = "down";
 		
 		// PLAYER STATUS
@@ -78,7 +78,6 @@ public class Player extends Entity{
 		currentWeapon = new OBJ_Sword_Normal(gp);
 		currentShield = new OBJ_Shield_Wood(gp);
 		projectile = new OBJ_Fireball(gp);
-		//projectile = new OBJ_Rock(gp);
 		attack = getAttack();
 		defense = getDefense();
 		
@@ -171,7 +170,7 @@ public class Player extends Entity{
 		    
 		    // CHECK CONTACT TILE COLLISION
 		    int cTileIndex = gp.cChecker.checkEntity(this, gp.cTile);
-		    
+		    damageContactTile(cTileIndex);
 		    
 		    // CHECK EVENT
 		     gp.eHandler.checkEvent();
@@ -230,6 +229,7 @@ public class Player extends Entity{
 		    	
 		    	gp.playSE(10);
 		    	
+		    	projectile.speed = 5;
 		    }
 		    
 		    if(invincible == true) {
@@ -291,7 +291,8 @@ public class Player extends Entity{
 		damageMonster(monsterIndex, attack);
 		
 		int cTileIndex = gp.cChecker.checkEntity(this, gp.cTile);
-		damageContacTile(cTileIndex);
+		damageContactTile(cTileIndex);
+		
 		// after check the collision restore the original data
 		worldX = currentWorldX;
 		worldY = currentWorldY;
@@ -368,6 +369,8 @@ public class Player extends Entity{
 				}
 				life -= damage;
 				invincible = true;
+				
+				
 			}
 		}
 	}
@@ -404,12 +407,14 @@ public class Player extends Entity{
 	}
 }
 	
-	public void damageContacTile(int i) {
-		if(i != 999 && gp.cTile[i].destructible == true && gp.cTile[i].isCorrectItem(this)
+	public void damageContactTile(int i) {
+		if(i != 999 && gp.cTile[i].destructible == true && gp.cTile[i].isCorrectItem(this) == true
 				&& gp.cTile[i].invincible == false) {
 			gp.cTile[i].PlaySE();
 			gp.cTile[i].life--;
 			gp.cTile[i].invincible = true;
+			
+			generateParticle(gp.cTile[i],gp.cTile[i]);
 			
 			if(gp.cTile[i].life == 0) {
 				gp.cTile[i] = gp.cTile[i].getDestroyedForm();
