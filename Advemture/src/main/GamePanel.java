@@ -42,6 +42,7 @@ public class GamePanel extends JPanel implements Runnable{
     int screenHeight2 = screenHeight;
     BufferedImage tempScreen;
     Graphics2D g2;
+    public boolean fullScreenOn = false;
 	
 	//FPS
 	int FPS = 60;
@@ -50,6 +51,8 @@ public class GamePanel extends JPanel implements Runnable{
 	TileManager tileM = new TileManager(this);
 	public KeyHandler keyH = new KeyHandler(this);
 	Sound music = new Sound();
+	Config config = new Config(this);
+	
 	
 	//SOUND EFFECT
 	Sound se = new Sound();
@@ -76,8 +79,8 @@ public class GamePanel extends JPanel implements Runnable{
 	public final int pauseState = 2;
 	public final int dialogueState = 3; // Doi thoai giua PLAYER va NPC
 	public final int characterState = 4;
-	
-	
+	public final int optionsState = 5; // MENU
+	public final int gameOver = 6;
 	public GamePanel() {
 		
 		this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -99,8 +102,31 @@ public class GamePanel extends JPanel implements Runnable{
 		tempScreen = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_INT_ARGB);
 		g2 = (Graphics2D)tempScreen.getGraphics();
 		
-		setFullScreen();
+		if(fullScreenOn == true) {
+			setFullScreen();
+		}
 		
+	}
+	
+	public void retry() {
+		
+		player.setDefaultPositions();
+		player.restoreLifeAndMana();
+		aSetter.setNPC();
+		aSetter.setMonster();
+	}
+	
+	public void restart() {
+		
+		player.setDefaultValues();
+		player.setDefaultPositions();
+		player.restoreLifeAndMana();
+		player.setItems();
+		
+		aSetter.setObject();
+		aSetter.setNPC();
+		aSetter.setMonster();
+		aSetter.setContactTile();
 	}
 	
 	public void setFullScreen() {

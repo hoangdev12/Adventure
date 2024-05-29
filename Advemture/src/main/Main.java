@@ -10,12 +10,18 @@ public class Main {
 	
 	   window = new JFrame(); //tao 1 Frame moi
 	   //thiet lap hanh dong mac dinh kho dong cua so
+	   
 	   window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	   window.setResizable(false);//khong cho phep thay doi kich thuoc cua cua so
 	   window.setTitle("BoomGame");//title
-	   window.setUndecorated(true);
+	   
 	   GamePanel gamePanel = new GamePanel();
 	   window.add(gamePanel);
+	   
+	   gamePanel.config.loadConfig();
+	   if(gamePanel.fullScreenOn == true) {
+		   window.setUndecorated(true); // hide the sider bar
+	   }
 	   
 	   window.pack();
 	   
