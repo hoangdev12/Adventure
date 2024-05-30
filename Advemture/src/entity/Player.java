@@ -1,8 +1,6 @@
 package entity;
 
 import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -23,8 +21,6 @@ public class Player extends Entity{
 	public final int screenY;
 	int standCounter = 0;
 	public boolean attackCanceled = false;
-	public ArrayList<Entity> inventory = new ArrayList<>();
-	public final int maxInventorySize = 20;
 	
 	public Player(GamePanel gp, KeyHandler keyH) {
 		
@@ -60,7 +56,9 @@ public class Player extends Entity{
 		worldX = gp.tileSize * 23;
     	worldY = gp.tileSize * 21;
 
-		speed = 5;
+    	
+    	defaultSpeed = 4;
+		speed = defaultSpeed;
 		direction = "down";
 		
 		// PLAYER STATUS
@@ -74,7 +72,7 @@ public class Player extends Entity{
 		dexterity = 1;
 		exp = 0;
 		nextLevelExp = 5;
-		coin = 0;
+		coin = 500;
 		currentWeapon = new OBJ_Sword_Normal(gp);
 		currentShield = new OBJ_Shield_Wood(gp);
 		projectile = new OBJ_Fireball(gp);
@@ -237,8 +235,13 @@ public class Player extends Entity{
 		    	// SUBTRACT THE COST (MANA, AMMO ECT.)
 		    	projectile.subtractResource(this);
 		    	
-		    	// ADD IT TO THE LIST
-		    	gp.projectileList.add(projectile);
+		    	// CHECK VACANCY
+		    	for(int i = 0; i < gp.projectile[1].length; i++) {
+		    		if(gp.projectile[gp.currentMap][i] == null) {
+		    			gp.projectile[gp.currentMap][i] = projectile;
+		    			break;
+		    		}
+		    	}
 		    	
 		    	shotAvailableCounter = 0;
 		    	
@@ -272,6 +275,8 @@ public class Player extends Entity{
 	    
 	    if(life <= 0) {
 	    	gp.gameState = gp.gameOver;
+	    	gp.ui.commandNum = -1;
+	    	gp.stopMusic();
 	    	gp.playSE(12);
 	    }
 	}
@@ -308,10 +313,13 @@ public class Player extends Entity{
 		
 		//Check monster collision with the update worldX, worldY and solidArea
 		int monsterIndex = gp.cChecker.checkEntity(this, gp.monster);
-		damageMonster(monsterIndex, attack);
+		damageMonster(monsterIndex, attack, currentWeapon.knockBackPower);
 		
 		int cTileIndex = gp.cChecker.checkEntity(this, gp.cTile);
 		damageContactTile(cTileIndex);
+		
+		int projectileIndex = gp.cChecker.checkEntity(this, gp.projectile);
+		damageProjectile(projectileIndex);
 		
 		// after check the collision restore the original data
 		worldX = currentWorldX;
@@ -336,27 +344,33 @@ public class Player extends Entity{
 		if(i != 999) {
 			
 			// PICKUP ONLY ITEMS
-			if(gp.obj[i].type == type_pickupOnly) {
+			if(gp.obj[gp.currentMap][i].type == type_pickupOnly) {
 				
-				gp.obj[i].use(this);
-				gp.obj[i] = null;
+				gp.obj[gp.currentMap][i].use(this);
+				gp.obj[gp.currentMap][i] = null;
+			}
+			
+			// OBSTACLE
+			else if(gp.obj[gp.currentMap][i].type == type_obstacle) {
+				if(gp.keyH.enterPressed == true) {
+					attackCanceled = true;
+					gp.obj[gp.currentMap][i].interact();
+				}
 			}
 			
 			// INVENTORY ITEMS
 			else {
 				String text;
 				
-				if(inventory.size() != maxInventorySize) {
-					
-					inventory.add(gp.obj[i]);
+				if(canObtainItem(gp.obj[gp.currentMap][i]) == true) {
 					gp.playSE(1);
-					text = "Got a " + gp.obj[i].name + "!";
+					text = "Got a " + gp.obj[gp.currentMap][i].name + "!";
 				}
 				else {
 					text = "You cannot carry any more!";
 				}
 				gp.ui.addMessage(text);
-				gp.obj[i] = null;
+				gp.obj[gp.currentMap][i] = null;
 			}
 		}
 	}
@@ -369,7 +383,7 @@ public class Player extends Entity{
 				
 				attackCanceled = true;
 				gp.gameState = gp.dialogueState;
-				gp.npc[i].speak();
+				gp.npc[gp.currentMap][i].speak();
 		}
 		
 		}			
@@ -379,47 +393,50 @@ public class Player extends Entity{
 		
 		if(i != 999) {
 			
-			if(invincible == false && gp.monster[i].dying == false) {
+			if(invincible == false && gp.monster[gp.currentMap][i].dying == false) {
 				
 			    gp.playSE(6);
 			    
-			    int damage = gp.monster[i].attack - defense;
+			    int damage = gp.monster[gp.currentMap][i].attack - defense;
 				if(damage < 0) {
 					damage = 0;
 				}
 				life -= damage;
 				invincible = true;
-				
-				
 			}
 		}
 	}
 	
-	public void damageMonster(int i, int attack) {
+	public void damageMonster(int i, int attack, int knockBackPower) {
 		
 		if(i != 999) {
 			
-		if(gp.monster[i].invincible == false) {
+		if(gp.monster[gp.currentMap][i].invincible == false) {
 			
 			gp.playSE(5);
 			
-			int damage = attack - gp.monster[i].defense;
+			if(knockBackPower > 0) {
+				knockBack(gp.monster[gp.currentMap][i], knockBackPower);
+			}
+			
+			
+			int damage = attack - gp.monster[gp.currentMap][i].defense;
 			if(damage < 0) {
 				damage = 0;
 			}
 			
-			gp.monster[i].life -= damage;
+			gp.monster[gp.currentMap][i].life -= damage;
 			gp.ui.addMessage(damage + " damage!");
 			
-			gp.monster[i].invincible = true;
-			gp.monster[i].damageReaction();
+			gp.monster[gp.currentMap][i].invincible = true;
+			gp.monster[gp.currentMap][i].damageReaction();
 			
-			if(gp.monster[i].life <= 0) {
-				gp.monster[i].dying = true;
-				gp.monster[i].collision = false;
-				gp.ui.addMessage("Killed the " +  gp.monster[i].name + "!");
-				gp.ui.addMessage("Exp + " +  gp.monster[i].exp + "!");
-				exp += gp.monster[i].exp;
+			if(gp.monster[gp.currentMap][i].life <= 0) {
+				gp.monster[gp.currentMap][i].dying = true;
+				gp.monster[gp.currentMap][i].collision = false;
+				gp.ui.addMessage("Killed the " +  gp.monster[gp.currentMap][i].name + "!");
+				gp.ui.addMessage("Exp + " +  gp.monster[gp.currentMap][i].exp + "!");
+				exp += gp.monster[gp.currentMap][i].exp;
 				checkLevelUp();
 				
 			}
@@ -427,17 +444,25 @@ public class Player extends Entity{
 	}
 }
 	
+	public void knockBack(Entity entity, int knockBackPower) {
+		
+		entity.direction = direction;
+		entity.speed += knockBackPower;
+		entity.knockBack = true;
+		
+	}
+	
 	public void damageContactTile(int i) {
-		if(i != 999 && gp.cTile[i].destructible == true && gp.cTile[i].isCorrectItem(this) == true
-				&& gp.cTile[i].invincible == false) {
-			gp.cTile[i].PlaySE();
-			gp.cTile[i].life--;
-			gp.cTile[i].invincible = true;
+		if(i != 999 && gp.cTile[gp.currentMap][i].destructible == true && gp.cTile[gp.currentMap][i].isCorrectItem(this) == true
+				&& gp.cTile[gp.currentMap][i].invincible == false) {
+			gp.cTile[gp.currentMap][i].PlaySE();
+			gp.cTile[gp.currentMap][i].life--;
+			gp.cTile[gp.currentMap][i].invincible = true;
 			
-			generateParticle(gp.cTile[i],gp.cTile[i]);
+			generateParticle(gp.cTile[gp.currentMap][i],gp.cTile[gp.currentMap][i]);
 			
-			if(gp.cTile[i].life == 0) {
-				gp.cTile[i] = gp.cTile[i].getDestroyedForm();
+			if(gp.cTile[gp.currentMap][i].life == 0) {
+				gp.cTile[gp.currentMap][i] = gp.cTile[gp.currentMap][i].getDestroyedForm();
 			}
 		}
 	}
@@ -460,9 +485,18 @@ public class Player extends Entity{
 		}
 	}
 	
+	public void damageProjectile(int i) {
+		
+		if(i != 999) {
+			Entity projectile = gp.projectile[gp.currentMap][i];
+			projectile.alive = false;
+			generateParticle(projectile, projectile);
+		}
+	}
+	
 	public void selectItem() {
 		
-		int itemIndex = gp.ui.getItemIndexOnSlot();
+		int itemIndex = gp.ui.getItemIndexOnSlot(gp.ui.playerSlotCol, gp.ui.playerSlotRow);
 		
 		if(itemIndex < inventory.size()) {
 			
@@ -483,10 +517,58 @@ public class Player extends Entity{
 			
 			if(selectedItem.type == type_consumable) {
 				
-				selectedItem.use(this);
-				inventory.remove(itemIndex);
+				if(selectedItem.use(this) == true) {
+					if(selectedItem.amount > 1) {
+						selectedItem.amount--;
+					}
+					else {
+						inventory.remove(itemIndex);
+					}
+				}
 			}
 		}
+	}
+
+	public int searchItemInInventory(String itemName) {
+		
+		int itemIndex = 999;
+		
+		for(int i = 0; i < inventory.size(); i++) {
+			if(inventory.get(i).name.equals(itemName)) {
+				itemIndex = i;
+				break;
+			}
+		}
+		return itemIndex;
+	}
+	
+	public boolean canObtainItem(Entity item) {
+		
+		boolean canObtain = false;
+		
+		// CHECK IF STACKABLE
+		if(item.stackable == true) {
+			
+			int index = searchItemInInventory(item.name);
+			
+			if(index != 999) {
+				inventory.get(index).amount++;
+				canObtain = true;
+			}
+			else { // NEW ITEM SO NEED TO CHECK VACANCY
+				if(inventory.size() != maxInventorySize) {
+					inventory.add(item);
+					canObtain = true;
+				}
+			}
+		}
+		else { // NOT STACKABLE SO CHECK VACANCY
+			if(inventory.size() != maxInventorySize) {
+				inventory.add(item);
+				canObtain = true;
+			}
+		}
+		return canObtain;
 	}
 	
 	public void draw(Graphics2D g2) {

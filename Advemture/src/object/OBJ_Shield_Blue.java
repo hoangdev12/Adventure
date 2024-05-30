@@ -16,6 +16,7 @@ public class OBJ_Shield_Blue extends Entity {
 		attackArea.width = 30;
 		attackArea.height = 30;
 		description = "[" + name + "]\nA shiny blue shield.";;
+		price = 250;
 	}
 	
 }

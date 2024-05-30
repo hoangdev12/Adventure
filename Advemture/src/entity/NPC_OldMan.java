@@ -13,7 +13,7 @@ public class NPC_OldMan extends Entity{
 		super(gp);
 		
 		direction = "down";
-		speed = 1;
+		speed = 2;
 		
 		solidArea = new Rectangle();
 		solidArea.x = 8; 
@@ -49,31 +49,44 @@ public class NPC_OldMan extends Entity{
 	
 	public void setAction() {
 		
-		actionLockCounter ++;
-		
-		if(actionLockCounter == 120) {
-			Random random = new Random();
-			int i = random.nextInt(100) + 1; // pick up a number from 1 to 100
-		
-			if(i <= 25) {
-				direction = "up";
-			}
-			else if(i <= 50) {
-				direction = "down";
-			}
-			else if(i <= 75) {
-				direction = "left";
-			}
-			else if(i <= 100) {
-				direction = "right";
-			}
+		if(onPath == true) {
 			
-			actionLockCounter = 0;
+			int goalCol = (gp.player.worldX + gp.player.solidAreaDefaultX) / gp.tileSize;
+			int goalRow = (gp.player.worldY + gp.player.solidAreaDefaultY) / gp.tileSize;
+			
+			searchPath(goalCol, goalRow);
+		}
+		else {
+
+			actionLockCounter ++;
+			
+			if(actionLockCounter == 120) {
+				Random random = new Random();
+				int i = random.nextInt(100) + 1; // pick up a number from 1 to 100
+			
+				if(i <= 25) {
+					direction = "up";
+				}
+				else if(i <= 50) {
+					direction = "down";
+				}
+				else if(i <= 75) {
+					direction = "left";
+				}
+				else if(i <= 100) {
+					direction = "right";
+				}
+				
+				actionLockCounter = 0;
+			}
 		}
 	}
+		
 	
 	public void speak() {
 		
 		super.speak();
+		
+		onPath = true;
 	}
 }

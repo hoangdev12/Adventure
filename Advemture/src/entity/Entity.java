@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
@@ -38,6 +39,8 @@ public class Entity {
 	public boolean alive = true;
 	public boolean dying = false;
 	boolean hpBarOn = false;
+	public boolean onPath = false;
+	public boolean knockBack = false;
 	
 	// COUNTER
 	public int spriteCounter = 0;
@@ -46,9 +49,11 @@ public class Entity {
 	public int shotAvailableCounter = 0;
 	int dyingCounter = 0;
 	int hpBarCounter = 0;
+	int knockBackCounter = 0;
 	
 	// CHARACTER ATTIBUTES
 	public String name;
+	public int defaultSpeed;
 	public int speed;
 	public int maxLife;
 	public int life;
@@ -68,11 +73,17 @@ public class Entity {
 	public Projectiles projectile;
 
 	// ITEM ATTRIBUTES
+	public ArrayList<Entity> inventory = new ArrayList<>();
+	public final int maxInventorySize = 20;
 	public int value;
 	public int attackValue;
 	public int defenseValue;
 	public String description = "";
 	public int useCost;
+	public int price;
+	public int knockBackPower = 0;
+	public boolean stackable = false;
+	public int amount = 1;
 	
 	// TYPE
 	public int type; // 0 = player, 1 = npc, 2 = monster
@@ -84,9 +95,35 @@ public class Entity {
 	public final int type_shield = 5;
 	public final int type_consumable = 6;
 	public final int type_pickupOnly = 7;
+	public final int type_obstacle = 8;
+	
 	
 	public Entity(GamePanel gp) {
 		this.gp = gp;
+	}
+	
+	public int getLeftX() {
+		return worldX + solidArea.x;
+	}
+	
+	public int getRightX() {
+		return worldX + solidArea.x + solidArea.width;
+	}
+	
+	public int getTopY() {
+		return worldY + solidArea.y;
+	}
+	
+	public int getBottomY() {
+		return worldY + solidArea.y + solidArea.height;
+	}
+	
+	public int getCol() {
+		return (worldX + solidArea.x) / gp.tileSize;
+	}
+	
+	public int getRow() {
+		return (worldY + solidArea.y) / gp.tileSize;
 	}
 	
 	public void setAction() {}
@@ -117,17 +154,21 @@ public class Entity {
 		}
 	}
 	
-	public void use(Entity entity) {}
+	public void interact() {
+		
+	}
+	
+	public boolean use(Entity entity) {return false;}
 	
 	public void checkDrop() {}
 
 	public void dropItem(Entity droppedItem) {
 		
-		for(int i = 0 ; i < gp.obj.length; i++) {
-			if(gp.obj[i] == null) {
-				gp.obj[i] = droppedItem;
-				gp.obj[i].worldX = worldX; // The position of enemy when dead
-				gp.obj[i].worldY = worldY; // The same ----------------------
+		for(int i = 0 ; i < gp.obj[1].length; i++) {
+			if(gp.obj[gp.currentMap][i] == null) {
+				gp.obj[gp.currentMap][i] = droppedItem;
+				gp.obj[gp.currentMap][i].worldX = worldX; // The position of enemy when dead
+				gp.obj[gp.currentMap][i].worldY = worldY; // The same ----------------------
 				break;
 			}
 		}
@@ -171,9 +212,7 @@ public class Entity {
 		gp.particleList.add(p4);
 	}
 	
-	public void update() {
-		
-		setAction();
+	public void checkCollision() {
 		
 		collisionOn = false;
 		gp.cChecker.checkTile(this);
@@ -187,26 +226,52 @@ public class Entity {
 			
 			damagePlayer(attack);
 		}
+	}
+	
+	public void update() {
 		
-		if (collisionOn == false) {
-	        switch (direction) {
-	            case "up":
-	                worldY -= speed;
-	                break;
-	            case "down":
-	                worldY += speed;
-	                break;
-	            case "left":
-	                worldX -= speed;
-	                break;
-	            case "right":
-	                worldX += speed;
-	                break;
-	        }
-	    }
+		if(knockBack == true) {
+			
+			checkCollision();
+			
+			if(collisionOn == true) {
+				knockBackCounter = 0;
+				knockBack = false;
+				speed = defaultSpeed;
+			}
+			else if(collisionOn == false) {
+				switch(gp.player.direction) {
+				case "up":  worldY -= speed; break;
+		        case "down": worldY += speed; break;
+		        case "left": worldX -= speed; break;
+		        case "right":  worldX += speed; break;
+				}
+			}
+			
+			knockBackCounter++;
+			if(knockBackCounter == 10) {
+				knockBackCounter = 0;
+				knockBack = false;
+				speed = defaultSpeed;
+			}
+		}
+		else {
+			if (collisionOn == false) {
+		        switch (direction) {
+		        case "up":  worldY -= speed; break;
+		        case "down": worldY += speed; break;
+		        case "left": worldX -= speed; break;
+		        case "right":  worldX += speed; break;
+		        }
+		    }
+		}
+		
+		setAction();
+		checkCollision();
+		
 	    // update sprite
 	    spriteCounter++;
-	    if (spriteCounter > 12) {
+	    if (spriteCounter > 24) {
 	        if (spriteNum == 1) {
 	            spriteNum = 2;
 	        } else if (spriteNum == 2) {
@@ -391,4 +456,126 @@ public class Entity {
 		}
 		return image;
 	}
+
+	public void searchPath(int goalCol, int goalRow) {
+		
+		int startCol = (worldX + solidArea.x) / gp.tileSize;
+		int startRow = (worldY + solidArea.y) / gp.tileSize;
+		
+		gp.pFinder.setNodes(startCol, startRow, goalCol, goalRow, this);
+		
+		if(gp.pFinder.search() == true) {
+			
+			// NEXT worldX & worldY
+			int nextX = gp.pFinder.pathList.get(0).col * gp.tileSize;
+			int nextY = gp.pFinder.pathList.get(0).row * gp.tileSize;
+			
+			// ENTITY'S SOLID AREA POSITION
+			int enLeftX = worldX + solidArea.x;
+			int enRightX = worldX + solidArea.x + solidArea.width;
+			int enTopY = worldY + solidArea.y;
+			int enBottomY = worldY + solidArea.y + solidArea.height;
+			
+			if(enTopY > nextY && enLeftX >= nextX && enRightX < nextX + gp.tileSize) {
+				direction = "up";
+			}
+			else if(enTopY < nextY && enLeftX >= nextX && enRightX < nextX + gp.tileSize) {
+				direction = "down";
+			}
+			else if(enTopY >= nextY && enBottomY < nextY + gp.tileSize) {
+				// LEFT OR RIGHT
+				if(enLeftX > nextX) {
+					direction = "left";
+				}
+				if(enLeftX < nextX) {
+					direction = "right";
+				}
+			}
+			else if(enTopY > nextY && enLeftX > nextX) {
+				// UP OR LEFT
+				direction = "up";
+				checkCollision();
+				if(collisionOn == true) {
+					direction = "left";
+				}
+			}
+			else if(enTopY > nextY && enLeftX < nextX) {
+				// UP OR RIGHT
+				direction = "up";
+				checkCollision();
+				if(collisionOn == true) {
+					direction = "right";
+				}
+			}
+			else if(enTopY < nextY && enLeftX > nextX) {
+				// DOWN OR LEFT
+				direction = "down";
+				checkCollision();
+				if(collisionOn == true) {
+					direction = "left";
+				}
+			}
+			else if(enTopY < nextY && enLeftX < nextX) {
+				// DOWN OR RIGHT
+				direction = "down";
+				checkCollision();
+				if(collisionOn == true) {
+					direction = "right";
+				}
+			}
+			
+			// IF REACHES THE GOAL, STOP THE SEARCH
+//			int nextCol = gp.pFinder.pathList.get(0).col;
+//			int nextRow = gp.pFinder.pathList.get(0).row;
+//			if(nextCol == goalCol && nextRow == goalRow) {
+//				onPath = false;
+//			}
+			
+		}
+	}
+	
+	public int getDetected(Entity user, Entity target[][], String targetName) {
+		
+		int index = 999;
+		
+		// CHECK THE SURROUNDING OBJECT
+		int nextWorldX = user.getLeftX();
+		int nextWorldY = user.getRightX();
+		
+		switch(user.direction) {
+		case "up": nextWorldY = user.getTopY() - 1; break;
+		case "down": nextWorldY = user.getBottomY() - 1; break;
+		case "left": nextWorldX = user.getLeftX() - 1; break;
+		case "right": nextWorldX = user.getRightX() - 1; break;
+ 		}
+		
+		int col = nextWorldX / gp.tileSize;
+		int row = nextWorldY / gp.tileSize;
+		
+		for(int i = 0; i < target[1].length; i++) {
+			if(target[gp.currentMap][i] != null) {
+				if(target[gp.currentMap][i].getCol() == col 
+				&& target[gp.currentMap][i].getRow() == row
+				&& target[gp.currentMap][i].name.equals(targetName) == true) {
+					
+					index = i;
+					break;
+				}
+			}
+		}
+		return index;
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	
+		
+	}
+	
 }

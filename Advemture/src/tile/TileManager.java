@@ -1,5 +1,6 @@
 package tile;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -16,17 +17,19 @@ public class TileManager {
 
 	GamePanel gp;
 	public Tile[] tile;
-	public int mapTileNum[][];
+	public int mapTileNum[][][];
+	boolean drawPath = true;
 	
 	public TileManager(GamePanel gp) {
 		
 		this.gp = gp;
 		
 		tile = new Tile[50];
-		mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
+		mapTileNum = new int[gp.maxMap][gp.maxWorldCol][gp.maxWorldRow];
 		
 		getTileImage();
-		loadMap("/maps/worldV2.txt");
+		loadMap("/maps/worldV3.txt", 0);
+		loadMap("/maps/interior01.txt", 1);
 	}
 	
 	public void  getTileImage() {
@@ -77,6 +80,9 @@ public class TileManager {
 		setup(39, "earth", false);
 		setup(40, "wall", true);
 		setup(41, "tree", true);
+		setup(42, "hut", false);
+		setup(43, "floor01", false);
+		setup(44, "table01", true);
 		
 }
 	
@@ -92,9 +98,10 @@ public class TileManager {
 			e.printStackTrace();
 		}
 	}
-	public void loadMap(String Map) {
+	
+	public void loadMap(String filePath, int map) {
 		try {
-			InputStream is = getClass().getResourceAsStream(Map);
+			InputStream is = getClass().getResourceAsStream(filePath);
 			BufferedReader br = new BufferedReader(new InputStreamReader(is));
 			
 			int col = 0;
@@ -110,7 +117,7 @@ public class TileManager {
 					
 					int num = Integer.parseInt(numbers[col]);
 					
-					mapTileNum[col][row] = num;
+					mapTileNum[map][col][row] = num;
 					col++;
 				}
 				if( col == gp.maxWorldCol ) {
@@ -123,9 +130,7 @@ public class TileManager {
 			
 		}
 	}
-	
-	
-	
+		
 	public void draw(Graphics2D g2) {
 //		g2.drawImage(tile[0].image, 0,  0, gp.tileSize, gp.tileSize, null);
 //		g2.drawImage(tile[1].image, 48,  0, gp.tileSize, gp.tileSize, null);
@@ -137,7 +142,7 @@ public class TileManager {
 		
 		while(worldCol < gp.maxWorldCol && worldRow < gp.maxWorldRow) {
 			
-			int tileNum = mapTileNum[worldCol][worldRow];
+			int tileNum = mapTileNum[gp.currentMap][worldCol][worldRow];
 			
 			int worldX = worldCol * gp.tileSize;
 			int worldY = worldRow * gp.tileSize;
@@ -159,6 +164,20 @@ public class TileManager {
 				worldCol = 0; 
 				worldRow++;
 				
+			}
+		}
+		
+		if(drawPath == true) {
+			g2.setColor(new Color(255,0,0,70));
+			
+			for(int i = 0; i < gp.pFinder.pathList.size(); i++) {
+				
+				int worldX = gp.pFinder.pathList.get(i).col * gp.tileSize;
+				int worldY = gp.pFinder.pathList.get(i).row * gp.tileSize;
+				int screenX = worldX - gp.player.worldX + gp.player.screenX;
+				int screenY = worldY - gp.player.worldY + gp.player.screenY;
+				
+				g2.fillRect(screenX, screenY, gp.tileSize, gp.tileSize);
 			}
 		}
 		

@@ -20,7 +20,8 @@ public class Slime extends Entity {
 		
 		type = type_monster;
 		name = "Slime";
-		speed = 1;
+		defaultSpeed = 1;
+		speed = defaultSpeed;
 		maxLife = 4;
 		life = maxLife;
 		attack = 5;
@@ -51,44 +52,81 @@ public class Slime extends Entity {
 	    
 	}
 	
+	public void update() {
+		
+		super.update();
+		
+		int xDistance = Math.abs(worldX - gp.player.worldX);
+		int yDistance = Math.abs(worldY - gp.player.worldY);
+		int tileDistance = (xDistance + yDistance) / gp.tileSize;
+		
+		if(onPath == false && tileDistance < 5) {
+			
+			int i = new Random().nextInt(100) + 1;
+			if(i > 50) {
+				onPath = true;
+			}
+		}
+	}
+	
 	public void setAction() {
 		
-		actionLockCounter ++;
-		
-		if(actionLockCounter == 120) {
-			Random random = new Random();
-			int i = random.nextInt(80) + 1; // pick up a number from 1 to 100
-		
-			if(i <= 20) {
-				direction = "up";
-			}
-			else if(i <= 40) {
-				direction = "down";
-			}
-			else if(i <= 60) {
-				direction = "left";
-			}
-			else if(i <= 80) {
-				direction = "right";
-			}
+		if(onPath == true) {
 			
-			actionLockCounter = 0;
+			int goalCol = (gp.player.worldX + gp.player.solidAreaDefaultX) / gp.tileSize;
+			int goalRow = (gp.player.worldY + gp.player.solidAreaDefaultY) / gp.tileSize;
+			
+			searchPath(goalCol, goalRow);
+			
+			int i = new Random().nextInt(200) + 1;
+			if(i > 197 && projectile.alive == false && shotAvailableCounter == 30) {
+				
+				projectile.set(worldX, worldY, direction, true, this);
+				
+				// CHECK VACANCY
+				for(int i1 = 0; i1 < gp.projectile[1].length; i1++) {
+					if(gp.projectile[gp.currentMap][i1] == null) {
+						gp.projectile[gp.currentMap][i1] = projectile;
+						break;
+					}
+				}
+				
+				
+				
+				shotAvailableCounter = 0;
+			}
 		}
-		
-		int i = new Random().nextInt(100) + 1;
-		if(i > 99 && projectile.alive == false && shotAvailableCounter == 30) {
+		else {
+
+			actionLockCounter ++;
 			
-			projectile.set(worldX, worldY, direction, true, this);
-			gp.projectileList.add(projectile);
-			shotAvailableCounter = 0;
-			projectile.speed = 5;
+			if(actionLockCounter == 120) {
+				Random random = new Random();
+				int i = random.nextInt(100) + 1; // pick up a number from 1 to 100
+			
+				if(i <= 25) {
+					direction = "up";
+				}
+				else if(i <= 50) {
+					direction = "down";
+				}
+				else if(i <= 75) {
+					direction = "left";
+				}
+				else if(i <= 100) {
+					direction = "right";
+				}
+				
+				actionLockCounter = 0;
+			}
 		}
 	}
 	
 	public void damageReaction() {
 		
 		actionLockCounter = 0;
-		direction = gp.player.direction;
+//		direction = gp.player.direction;
+		onPath = true;
 	}
 	
 	public void checkDrop() {
