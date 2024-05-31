@@ -41,7 +41,7 @@ public class GamePanel extends JPanel implements Runnable{
     public final int worldHeight = tileSize * maxWorldRow;
     public final int worldWidth = tileSize * maxWorldCol;
 	public final int maxMap = 10;
-	public int currentMap = 0;
+	public int currentMap = 3;
     
     // FULL SCREEN
     int screenWidth2 = screenWidth;
@@ -71,6 +71,7 @@ public class GamePanel extends JPanel implements Runnable{
 	public AssetSetter aSetter = new AssetSetter(this);
 	public UI ui = new UI(this);
 	public EventHandler eHandler = new EventHandler(this);
+	
 	
 	//ENTITY AND OBJECT
 	public Player player = new Player(this,keyH);
@@ -137,6 +138,7 @@ public class GamePanel extends JPanel implements Runnable{
 	
 	public void resetGame(boolean restart) {
 		
+		currentArea = outside;
 		player.setDefaultPositions();
 		player.restoreStatus();
 		player.resetCounter();
@@ -363,6 +365,9 @@ public class GamePanel extends JPanel implements Runnable{
 			
 			// MINI MAP
 			map.drawMiniMap(g2);
+			
+		
+			
 			//UI
 			ui.draw(g2);
 		}
@@ -373,6 +378,7 @@ public class GamePanel extends JPanel implements Runnable{
 			long passed = drawEnd - drawStart;
 			g2.setColor(Color.white);
 			g2.drawString("Draw Time: " + passed , 10, 400);
+			g2.drawString("God Mode: " + keyH.godModeOn, 10 ,400);
 			System.out.println("Draw Time: " + passed);
 		}
 	}

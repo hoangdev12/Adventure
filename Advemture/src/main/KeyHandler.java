@@ -13,6 +13,7 @@ public class KeyHandler implements KeyListener{
     
     // DEBUG
     boolean checkDrawTime = false;
+    public boolean godModeOn = false;
     
     public KeyHandler(GamePanel gp) {
     	this.gp = gp;
@@ -268,6 +269,15 @@ public class KeyHandler implements KeyListener{
         	switch(gp.currentMap) {
         	case 0: gp.tileM.loadMap("/maps/worldV3.txt", 0); break;
         	case 1: gp.tileM.loadMap("/maps/interior01.txt", 1); break;
+        	}
+        }
+        
+        if(code == KeyEvent.VK_G) {
+        	if(godModeOn == false) {
+        		godModeOn = true;
+        	}
+        	else if(godModeOn == true) {
+        		godModeOn = false;
         	}
         }
 	}

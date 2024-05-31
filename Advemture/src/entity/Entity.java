@@ -52,6 +52,8 @@ public class Entity {
 	public boolean offBalance = false;
 	public Entity loot;
 	public boolean opened = false;
+	public boolean inRage = false;
+	
 	
 	// COUNTER
 	public int spriteCounter = 0;
@@ -145,14 +147,21 @@ public class Entity {
 	public int getRow() {
 		return (worldY + solidArea.y) / gp.tileSize;
 	}
-	
+	public int getCenterX() {
+		int centerX = worldX + left1.getWidth()/2;
+		return centerX;
+	}
+	public int getCenterY() {
+		int centerY = worldY + up1.getHeight()/2;
+		return centerY;
+	}
 	public int getXdistance(Entity target) {
-		int xDistance = Math.abs(worldX - target.worldX);
+		int xDistance = Math.abs(getCenterX() - target.getCenterX());
 		return xDistance;
 	}
 	
 	public int getYdistance(Entity target) {
-		int yDistance = Math.abs(worldY - target.worldY);
+		int yDistance = Math.abs(getCenterY() - target.getCenterY());
 		return yDistance;
 	}
 	
@@ -197,22 +206,22 @@ public class Entity {
 		
 		switch(direction) {
 		case "up":
-			if(gp.player.worldY < worldY && yDis < straight && xDis < horizontal) {
+			if(gp.player.getCenterY() < getCenterY() && yDis < straight && xDis < horizontal) {
 				targetInRange = true;
 			}
 			break;
 		case "down":
-			if(gp.player.worldY > worldY && yDis < straight && xDis < horizontal) {
+			if(gp.player.getCenterY() > getCenterY() && yDis < straight && xDis < horizontal) {
 				targetInRange = true;
 			}
 			break;
 		case "left":
-			if(gp.player.worldX < worldX && xDis < straight && yDis < horizontal) {
+			if(gp.player.getCenterX() < getCenterX() && xDis < straight && yDis < horizontal) {
 				targetInRange = true;
 			}
 			break;
 		case "right":
-			if(gp.player.worldY > worldY && xDis < straight && yDis < horizontal) {
+			if(gp.player.getCenterX() > getCenterX() && xDis < straight && yDis < horizontal) {
 				targetInRange = true;
 			}
 			break;
@@ -271,11 +280,11 @@ public class Entity {
 		}
 	}
 	
-	public void getRandomDirection() {
+	public void getRandomDirection(int interval) {
 		
 		actionLockCounter ++;
 		
-		if(actionLockCounter == 120) {
+		if(actionLockCounter == interval) {
 			Random random = new Random();
 			int i = random.nextInt(100) + 1; // pick up a number from 1 to 100
 		
@@ -402,87 +411,115 @@ public class Entity {
 	
 	public void update() {
 		
-		if(knockBack == true) {
-			
-			checkCollision();
-			
-			if(collisionOn == true) {
-				knockBackCounter = 0;
-				knockBack = false;
-				speed = defaultSpeed;
-			}
-			else if(collisionOn == false) {
-				switch(knockBackDirection) {
-				case "up":  worldY -= speed; break;
-		        case "down": worldY += speed; break;
-		        case "left": worldX -= speed; break;
-		        case "right":  worldX += speed; break;
+		
+			if(knockBack == true) {
+				
+				checkCollision();
+				
+				if(collisionOn == true) {
+					knockBackCounter = 0;
+					knockBack = false;
+					speed = defaultSpeed;
+				}
+				else if(collisionOn == false) {
+					switch(knockBackDirection) {
+					case "up":  worldY -= speed; break;
+			        case "down": worldY += speed; break;
+			        case "left": worldX -= speed; break;
+			        case "right":  worldX += speed; break;
+					}
+				}
+				
+				knockBackCounter++;
+				if(knockBackCounter == 10) {
+					knockBackCounter = 0;
+					knockBack = false;
+					speed = defaultSpeed;
 				}
 			}
 			
-			knockBackCounter++;
-			if(knockBackCounter == 10) {
-				knockBackCounter = 0;
-				knockBack = false;
-				speed = defaultSpeed;
+			else if(attacking == true) {
+				attacking();
 			}
-		}
-		
-		else if(attacking == true) {
-			attacking();
-		}
-		
-		else {
-		
-			setAction();
-			checkCollision();
 			
-			// IF COLLISION IS FALSE, CAN MOVE
-			if (collisionOn == false) {
-		        switch (direction) {
-		        case "up":  worldY -= speed; break;
-		        case "down": worldY += speed; break;
-		        case "left": worldX -= speed; break;
-		        case "right":  worldX += speed; break;
-		        }
-		    }
+			else {
 			
-		    // update sprite
-		    spriteCounter++;
-		    if (spriteCounter > 24) {
-		        if (spriteNum == 1) {
-		            spriteNum = 2;
-		        } else if (spriteNum == 2) {
-		            spriteNum = 1;
-		        }
-		        spriteCounter = 0;
+				setAction();
+				checkCollision();
+				
+				// IF COLLISION IS FALSE, CAN MOVE
+				if (collisionOn == false) {
+			        switch (direction) {
+			        case "up":  worldY -= speed; break;
+			        case "down": worldY += speed; break;
+			        case "left": worldX -= speed; break;
+			        case "right":  worldX += speed; break;
+			        }
+			    }
+				
+			    // update sprite
+			    spriteCounter++;
+			    if (spriteCounter > 24) {
+			        if (spriteNum == 1) {
+			            spriteNum = 2;
+			        } else if (spriteNum == 2) {
+			            spriteNum = 1;
+			        }
+			        spriteCounter = 0;
+			    }
+			    
+			}
+
+		    if(invincible == true) {
+		    	
+		    	invincibleCounter++;
+		    	
+		    	if(invincibleCounter > 15) {
+		    		invincible = false;
+		    		invincibleCounter = 0;
+		    	}
 		    }
 		    
+		    if(shotAvailableCounter < 30) {
+		    	shotAvailableCounter++;
+		    }
+		    
+		    if(offBalance == true) {
+		    	offBalanceCounter++;
+		    	if(offBalanceCounter > 60) {
+		    		offBalance = false;
+		    		offBalanceCounter = 0;
+		    	}
+		    }
 		}
-
-	    if(invincible == true) {
-	    	
-	    	invincibleCounter++;
-	    	
-	    	if(invincibleCounter > 15) {
-	    		invincible = false;
-	    		invincibleCounter = 0;
-	    	}
-	    }
-	    
-	    if(shotAvailableCounter < 30) {
-	    	shotAvailableCounter++;
-	    }
-	    
-	    if(offBalance == true) {
-	    	offBalanceCounter++;
-	    	if(offBalanceCounter > 60) {
-	    		offBalance = false;
-	    		offBalanceCounter = 0;
-	    	}
-	    }
-	}
-
+		
+	
+    public void moveTowardPlayer(int interval) {
+    	
+    	actionLockCounter++;
+    	
+    	if(actionLockCounter > interval) {
+    		
+    		if(getXdistance(gp.player) > getYdistance(gp.player)) {
+    			if(gp.player.getCenterX() < getCenterX()) {
+    				direction = "left";
+    			}
+    			else {
+    				direction = "right";
+    			}
+    		}
+    		else if(getXdistance(gp.player) < getYdistance(gp.player)) {
+    			if(gp.player.getCenterY() < getCenterY()) {
+    				direction = "up";
+    			}
+    			else {
+    				direction = "down";
+    			}
+    		}
+    		actionLockCounter = 0;
+    	}
+    	
+    }
 	public String getOppositeDirection(String direction) {
 		
 		String oppositeDirection = "";
@@ -627,7 +664,7 @@ public class Entity {
 				   if(spriteNum == 2) {image = up2;}
 				}
 				else {
-					tempScreenY = screenY - gp.tileSize;
+					tempScreenY = screenY - up1.getHeight();
 					if(spriteNum == 1) {image = attackUp1;}		
 					if(spriteNum == 2) {image = attackUp2;}
 				}
@@ -649,7 +686,7 @@ public class Entity {
 			    	 if(spriteNum == 2) {image = left2;}
 		    	}
 		    	else {
-		    		tempScreenX = screenX - gp.tileSize;
+		    		tempScreenX = screenX - left1.getWidth();
 		    		if(spriteNum == 1) {image = attackLeft1;}	
 		    	    if(spriteNum == 2) {image = attackLeft2;}
 		    	} 		    	
