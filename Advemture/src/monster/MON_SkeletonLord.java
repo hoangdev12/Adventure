@@ -105,7 +105,7 @@ public class MON_SkeletonLord extends Entity{
 			getAttackImage();
 			defaultSpeed++;
 			speed = defaultSpeed;
-			attack +=2;
+			attack *=2;
 		}
 		
 		if(getTileDistance(gp.player) < 10) {
