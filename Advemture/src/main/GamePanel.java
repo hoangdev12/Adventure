@@ -15,9 +15,11 @@ import java.util.Comparator;
 import javax.swing.JPanel;
 
 import ai.PathFinder;
+import data.SaveLoad;
 import entity.Entity;
 import entity.Player;
 import environment.EnvironmentManager;
+import tile.Map;
 import tile.TileManager;
 import tiles_contact.ContactTile;
 
@@ -58,6 +60,8 @@ public class GamePanel extends JPanel implements Runnable{
 	Config config = new Config(this);
 	public PathFinder pFinder = new PathFinder(this);
 	EnvironmentManager eManager = new EnvironmentManager(this);
+	Map map = new Map(this);
+	SaveLoad saveLoad = new SaveLoad(this);
 	Thread gameThread;
 	
 	
@@ -92,6 +96,7 @@ public class GamePanel extends JPanel implements Runnable{
 	public final int transitionState = 7;
 	public final int tradeState = 8;
 	public final int sleepState = 9;
+	public final int mapState = 10;
 	
 	public GamePanel() {
 		
@@ -121,25 +126,20 @@ public class GamePanel extends JPanel implements Runnable{
 		
 	}
 	
-	public void retry() {
+	public void resetGame(boolean restart) {
 		
 		player.setDefaultPositions();
-		player.restoreLifeAndMana();
+		player.restoreStatus();
 		aSetter.setNPC();
 		aSetter.setMonster();
-	}
-	
-	public void restart() {
 		
-		player.setDefaultValues();
-		player.setDefaultPositions();
-		player.restoreLifeAndMana();
-		player.setItems();
+		if(restart == true) {
+			player.setDefaultValues();
+			aSetter.setObject();
+			aSetter.setContactTile();
+			eManager.lighting.resetDay();
+		}
 		
-		aSetter.setObject();
-		aSetter.setNPC();
-		aSetter.setMonster();
-		aSetter.setContactTile();
 	}
 	
 	public void setFullScreen() {
@@ -273,6 +273,12 @@ public class GamePanel extends JPanel implements Runnable{
 		if(gameState == titleState) {
 			ui.draw(g2);
 		}
+		
+		// MAP SCREEN
+		else if(gameState == mapState) {
+			map.drawFullMapScreen(g2);
+		}
+		
 		// OTHER
 		else {
 			
@@ -344,6 +350,8 @@ public class GamePanel extends JPanel implements Runnable{
 			// ENVIRONMENT
 			eManager.draw(g2);
 			
+			// MINI MAP
+			map.drawMiniMap(g2);
 			//UI
 			ui.draw(g2);
 		}

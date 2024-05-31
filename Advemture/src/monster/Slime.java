@@ -52,73 +52,26 @@ public class Slime extends Entity {
 	    
 	}
 	
-	public void update() {
-		
-		super.update();
-		
-		int xDistance = Math.abs(worldX - gp.player.worldX);
-		int yDistance = Math.abs(worldY - gp.player.worldY);
-		int tileDistance = (xDistance + yDistance) / gp.tileSize;
-		
-		if(onPath == false && tileDistance < 5) {
-			
-			int i = new Random().nextInt(100) + 1;
-			if(i > 50) {
-				onPath = true;
-			}
-		}
-	}
-	
 	public void setAction() {
 		
 		if(onPath == true) {
 			
-			int goalCol = (gp.player.worldX + gp.player.solidAreaDefaultX) / gp.tileSize;
-			int goalRow = (gp.player.worldY + gp.player.solidAreaDefaultY) / gp.tileSize;
+			// Check if it stops chasing
+			checkStopChasingOrNot(gp.player, 25, 100);
 			
-			searchPath(goalCol, goalRow);
+			// Search the direction to go
+			searchPath(getGoalCol(gp.player), getGoalRow(gp.player));
 			
-			int i = new Random().nextInt(200) + 1;
-			if(i > 197 && projectile.alive == false && shotAvailableCounter == 30) {
-				
-				projectile.set(worldX, worldY, direction, true, this);
-				
-				// CHECK VACANCY
-				for(int i1 = 0; i1 < gp.projectile[1].length; i1++) {
-					if(gp.projectile[gp.currentMap][i1] == null) {
-						gp.projectile[gp.currentMap][i1] = projectile;
-						break;
-					}
-				}
-				
-				
-				
-				shotAvailableCounter = 0;
+			// Check if it shoots a projectile
+			checkShootOrNot(200, 30);
 			}
-		}
 		else {
-
-			actionLockCounter ++;
 			
-			if(actionLockCounter == 120) {
-				Random random = new Random();
-				int i = random.nextInt(100) + 1; // pick up a number from 1 to 100
+			// Check if it start chasing
+			checkStartChasingOrNot(gp.player, 5, 100);
 			
-				if(i <= 25) {
-					direction = "up";
-				}
-				else if(i <= 50) {
-					direction = "down";
-				}
-				else if(i <= 75) {
-					direction = "left";
-				}
-				else if(i <= 100) {
-					direction = "right";
-				}
-				
-				actionLockCounter = 0;
-			}
+			// Get a random direction
+			getRandomDirection();
 		}
 	}
 	

@@ -730,6 +730,7 @@ public class UI {
 			}
 		}		
 	}
+
 	public void drawSleepScreen() {
 			
 			counter++;
@@ -748,7 +749,7 @@ public class UI {
 					gp.eManager.lighting.dayState = gp.eManager.lighting.day;
 					gp.eManager.lighting.dayCounter = 0;
 					gp.gameState = gp.playState;
-					gp.player.getPlayerImage();
+					gp.player.getImage();
 				}
 			}
 		}
@@ -1026,6 +1027,8 @@ public class UI {
 			if(gp.keyH.enterPressed == true) {
 				subState = 0;
 				gp.gameState = gp.titleState;
+				gp.stopMusic();
+				gp.resetGame(true);
 			}
 		}
 	

@@ -9,7 +9,7 @@ public class KeyHandler implements KeyListener{
 	
 	GamePanel gp;
 	
-    public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed, shotKeyPressed;
+    public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed, shotKeyPressed, spacePressed;
     
     // DEBUG
     boolean checkDrawTime = false;
@@ -77,6 +77,12 @@ public class KeyHandler implements KeyListener{
 			tradeState(code);
 		}
 		
+		// MAP STATE
+		else if(gp.gameState == gp.mapState) {
+			
+			mapState(code);
+		}
+		
         // DEBUG
         if(code == KeyEvent.VK_T) {
   	      if(checkDrawTime == false) {
@@ -110,12 +116,12 @@ public class KeyHandler implements KeyListener{
 		if(code == KeyEvent.VK_ENTER) {
 			if(gp.ui.commandNum == 0) {
 				gp.gameState = gp.playState;
-				gp.retry();
+				gp.resetGame(false);
 				gp.playMusic(0);
 			}
 			else if(gp.ui.commandNum == 1) {
 				gp.gameState = gp.titleState;
-				gp.restart();
+				gp.resetGame(true);
 			}
 		}
 	}
@@ -146,7 +152,9 @@ public class KeyHandler implements KeyListener{
 	        	}
 	        	
 	        	if(gp.ui.commandNum == 1) {
-	        		
+	        		gp.saveLoad.load();
+	        		gp.gameState = gp.playState;
+	        		gp.playMusic(0);
 	        	}
 	        	
 	        	if(gp.ui.commandNum == 2) {
@@ -236,6 +244,23 @@ public class KeyHandler implements KeyListener{
         
         if(code == KeyEvent.VK_ESCAPE) {
   	    	gp.gameState = gp.optionsState;
+        }
+        
+        if(code == KeyEvent.VK_M) {
+  	    	gp.gameState = gp.mapState;
+        }
+        
+        if(code == KeyEvent.VK_X) {
+  	    	if(gp.map.miniMapOn == false) {
+  	    		gp.map.miniMapOn = true;
+  	    	}
+  	    	else {
+  	    		gp.map.miniMapOn = false;
+  	    	}
+        }
+        
+        if(code == KeyEvent.VK_SPACE) {
+  	    	spacePressed = true;
         }
         
         // DEBUG
@@ -340,6 +365,13 @@ public class KeyHandler implements KeyListener{
 					gp.playSE(9);
 				}
 			}
+		}
+	}
+	
+	public void mapState(int code) {
+		
+		if(code == KeyEvent.VK_M) {
+			gp.gameState = gp.playState;
 		}
 	}
 	
@@ -470,6 +502,14 @@ public class KeyHandler implements KeyListener{
         
         if(code == KeyEvent.VK_F) {
   	    	shotKeyPressed = false;
+        }
+        
+        if(code == KeyEvent.VK_ENTER) {
+  	    	enterPressed = false;
+        }
+        
+        if(code == KeyEvent.VK_SPACE) {
+  	    	spacePressed = false;
         }
 		
 	}
