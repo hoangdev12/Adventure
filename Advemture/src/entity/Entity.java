@@ -650,9 +650,9 @@ public class Entity {
 		int screenY = worldY - gp.player.worldY + gp.player.screenY;
 		
 		//camera around charater
-		if(worldX + gp.tileSize > gp.player.worldX - gp.player.screenX && 
+		if(worldX + gp.tileSize*5 > gp.player.worldX - gp.player.screenX && 
 		worldX - gp.tileSize < gp.player.worldX + gp.player.screenX &&
-		worldY + gp.tileSize >gp.player.worldY - gp.player.screenY &&
+		worldY + gp.tileSize*5 >gp.player.worldY - gp.player.screenY &&
 		worldX - gp.tileSize < gp.player.worldX + gp.player.screenX) {
 			int tempScreenX = screenX;
 			int tempScreenY = screenY;
