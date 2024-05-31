@@ -81,12 +81,12 @@ public class AssetSetter {
 		
 		gp.obj[mapNum][i] = new OBJ_Potion_Red(gp);
 		gp.obj[mapNum][i].worldX = gp.tileSize * 20;
-		gp.obj[mapNum][i].worldY = gp.tileSize * 20;
+		gp.obj[mapNum][i].worldY = gp.tileSize * 37;
 		i++;
 		
 		gp.obj[mapNum][i] = new OBJ_Potion_Red(gp);
-		gp.obj[mapNum][i].worldX = gp.tileSize * 17;
-		gp.obj[mapNum][i].worldY = gp.tileSize * 21;
+		gp.obj[mapNum][i].worldX = gp.tileSize * 35;
+		gp.obj[mapNum][i].worldY = gp.tileSize * 7;
 		i++;
 		
 		mapNum = 2;
@@ -156,9 +156,10 @@ public class AssetSetter {
 		i++;
 		
 		gp.monster[mapNum][i] = new Orc(gp);
-		gp.monster[mapNum][i].worldX = gp.tileSize * 23;//12
-		gp.monster[mapNum][i].worldY = gp.tileSize * 38;//33
+		gp.monster[mapNum][i].worldX = gp.tileSize * 12;//12
+		gp.monster[mapNum][i].worldY = gp.tileSize * 33;//33
 		i++;
+		
 		
 		//Red Monster
 		gp.monster[mapNum][i] = new MON_RedSlime(gp);
