@@ -23,6 +23,8 @@ public class NPC_OldMan extends Entity{
 		solidArea.width = 32;
 		solidArea.height = 32;
 		
+		dialogueSet = -1;
+		
 		getImage();
 		setDialogue();
 	}
@@ -41,10 +43,16 @@ public class NPC_OldMan extends Entity{
 	
 	public void setDialogue() {
 		
-		dialogues[0] = "... Hello";
-		dialogues[1] = "So u wanna find the treasure?";
-		dialogues[2] = "Well, Good luck on you.";
-		dialogues[3] = "... GoodBye!";
+		dialogues[0][0] = "... Hello";
+		dialogues[0][1] = "So u wanna find the treasure?";
+		dialogues[0][2] = "Well, Good luck on you.";
+		dialogues[0][3] = "... GoodBye!";
+		
+		dialogues[1][0] = "If you become tired, rest ai the water.";
+		dialogues[1][1] = "However, the monsters reapear if you rest.\n don't know why but that's how it works.";
+		dialogues[1][2] = "In any case, don't push yourself too hard.";
+		
+		dialogues[2][0] = "I wonder how to open that door ...";
 	}
 	
 	public void setAction() {
@@ -85,8 +93,18 @@ public class NPC_OldMan extends Entity{
 	
 	public void speak() {
 		
-		super.speak();
+	
+		facePlayer();
+		startDialogue(this, dialogueSet);
 		
-		onPath = true;
+		dialogueSet++;
+
+		
+		if(gp.player.life < gp.player.maxLife/3) {
+			dialogueSet = 1;
+		}
+		
+		
+//		onPath = true;
 	}
 }
