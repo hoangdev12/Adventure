@@ -18,7 +18,16 @@ public class CT_DryTree extends ContactTile {
 		
 		down1 = setup("/tiles_contact/drytree",gp.tileSize,gp.tileSize);
 		destructible = true;
-		life = 3;
+		life = 1;
+	}
+	
+	public boolean isCorrectItem(Entity entity) {
+		boolean isCorrectItem = false;
+		if(entity.currentWeapon.type == type_axe) {
+			isCorrectItem = true;
+			
+		}
+		return isCorrectItem;
 	}
 	
 	public void PlaySE() {

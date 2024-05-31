@@ -75,7 +75,7 @@ public class GamePanel extends JPanel implements Runnable{
 	//ENTITY AND OBJECT
 	public Player player = new Player(this,keyH);
 	public Entity obj[][] = new Entity[maxMap][20];
-	public Entity npc[][] = new Entity[maxMap][10];
+	public Entity npc[][] = new Entity[maxMap][20];
 	public Entity monster[][] = new Entity[maxMap][20];
 	public ContactTile cTile[][] = new ContactTile[maxMap][50];
 	public Entity projectile[][] = new Entity[maxMap][20];
@@ -98,6 +98,14 @@ public class GamePanel extends JPanel implements Runnable{
 	public final int sleepState = 9;
 	public final int mapState = 10;
 	
+	//AREA
+	public int currentArea;
+	public int nextArea;
+	public final int outside = 50;
+	public final int indoor = 51;
+	public final int dungeon = 52;
+	
+	
 	public GamePanel() {
 		
 		this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -116,6 +124,7 @@ public class GamePanel extends JPanel implements Runnable{
 		eManager.setup();
 		
 		gameState = titleState;
+		currentArea = outside;
 		
 		tempScreen = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_INT_ARGB);
 		g2 = (Graphics2D)tempScreen.getGraphics();
@@ -392,5 +401,27 @@ public class GamePanel extends JPanel implements Runnable{
 		
 		se.setFile(i);
 		se.play();
+	}
+	public void changeArea() {
+		
+		if(nextArea != currentArea) {
+		    
+			stopMusic();
+			
+			if(nextArea == outside) {
+				playMusic(0);									
+			}
+			if(nextArea == indoor) {
+				playMusic(17);									
+			}
+			if(nextArea == dungeon) {
+				playMusic(18);									
+			}
+			
+			aSetter.setNPC();
+		}
+		
+		currentArea = nextArea;
+		aSetter.setMonster();
 	}
 }
